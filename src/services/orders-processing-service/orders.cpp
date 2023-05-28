@@ -1,5 +1,6 @@
 #include <crow/http_parser_merged.h>
 #include <crow/http_response.h>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -55,7 +56,12 @@ void OrdersService::init(crow::SimpleApp& app, const std::string& path) {
 }
 
 void OrdersService::processOrders() {
-    std::string orders_raw_string = db_.getAllOrders().dump();
+    std::string orders_raw_string;
+    try {
+        orders_raw_string = db_.getAllOrders().dump();
+    } catch (const std::runtime_error& e) {
+        std::cout << "Error: " << e.what() << std::endl;
+    }
     std::vector<std::string> orders;
     std::string delimiter = ",";
     size_t pos = 0;
@@ -131,10 +137,10 @@ crow::response OrdersService::createOrder(const crow::json::rvalue& body) {
     std::string user_id = auth_body["user_id"].s();
 
     try {
+        std::cout << "Creating order" << std::endl;
         db_.createOrder(user_id, dish_name, quantity);
     } catch (const std::runtime_error& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return crow::response(500, "Internal server error");
+        return crow::response(500, e.what());
     }
 
     return crow::response(200, "Order created successfully");
@@ -169,8 +175,7 @@ crow::response OrdersService::getOrder(const crow::json::rvalue& body) {
     try {
         response_body = db_.getOrder(order_id);
     } catch (const std::runtime_error& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return crow::response(500, "Internal server error");
+        return crow::response(500, e.what());
     }
 
     return crow::response(200, response_body);
@@ -202,8 +207,7 @@ crow::response OrdersService::manageOrder(const crow::json::rvalue& body) {
     try {
         db_.changeOrderStatus(order_id, status);
     } catch (const std::runtime_error& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return crow::response(500, "Internal server error");
+        return crow::response(500, e.what());
     }
 
     return crow::response(200, "Order status changed successfully");
@@ -211,10 +215,11 @@ crow::response OrdersService::manageOrder(const crow::json::rvalue& body) {
 
 crow::response OrdersService::manageDish(const crow::json::rvalue& body) {
     std::string session_token = body["session_token"].s();
+    std::string dish_id = body["dish_name"].s();
     std::string dish_name = body["dish_name"].s();
     std::string quantity = body["quantity"].s();
 
-    if (session_token.empty() || dish_name.empty() || quantity.empty()) {
+    if (session_token.empty() || (dish_name.empty() && dish_id.empty()) || quantity.empty()) {
         return crow::response(400, "Missing required fields");
     }
 
@@ -233,10 +238,14 @@ crow::response OrdersService::manageDish(const crow::json::rvalue& body) {
     }
 
     try {
-        db_.changeDishQuantity(dish_name, quantity);
+        if (!dish_name.empty()) {
+            db_.addNewDish(dish_name, quantity);
+        }
+        if (!dish_id.empty()) {
+            db_.changeDishQuantity(dish_id, quantity);
+        }
     } catch (const std::runtime_error& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return crow::response(500, "Internal server error");
+        return crow::response(500, e.what());
     }
 
     return crow::response(200, "Dish updated successfully");

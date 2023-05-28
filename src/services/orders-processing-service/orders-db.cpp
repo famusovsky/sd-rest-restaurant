@@ -24,10 +24,10 @@ void OrdersDB::init(const std::string& db_name) {
             "CREATE TABLE IF NOT EXISTS dish ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
             "name VARCHAR(100) NOT NULL,"
-            "description TEXT,"
+            // "description TEXT,"
             // "price DECIMAL(10, 2) NOT NULL,"
             "quantity INT NOT NULL,"
-            "is_available INTEGER NOT NULL,"
+            // "is_available INTEGER NOT NULL,"
             "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
             "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
             ");"
@@ -266,6 +266,22 @@ void OrdersDB::changeDishQuantity(const std::string& dish_id, const std::string&
     std::string sql = "UPDATE dish SET quantity = ? WHERE id = ?;";
 
     int exit = runSQL(sql, db_, {quantity, dish_id});
+
+    if (exit != SQLITE_DONE) {
+        std::string message =
+            "Error inserting data: " + std::string(sqlite3_errmsg(db_)) + "\n";
+        throw std::runtime_error(message);
+    }
+}
+
+void OrdersDB::addNewDish(const std::string& dish_name, const std::string& quantity) {
+    if (db_ == nullptr) {
+        throw std::runtime_error("DB is not initialized");
+    }
+
+    std::string sql = "INSERT OR REPLACE INTO dish (name, quantity) VALUES (?, ?);";
+
+    int exit = runSQL(sql, db_, {dish_name, quantity});
 
     if (exit != SQLITE_DONE) {
         std::string message =
