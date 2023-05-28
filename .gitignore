@@ -1,5 +1,8 @@
 build
+test
 
 .cache
 .vscode
 .idea
+
+*.db

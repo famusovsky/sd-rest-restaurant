@@ -1,11 +1,20 @@
-#include "../service.h"
-#include <sqlite3.h>
+#include <cpr/cpr.h>
+#include <crow.h>
+#include <string>
+#include <vector>
+#include "db.h"
 
-class AuthentificationService : public Service {
+class AuthentificationService {
 public:
     AuthentificationService();
 
+    void init(crow::SimpleApp& app, const std::string& path);
+
 private:
-    crow::response post(crow::json::rvalue body) override;
-    crow::response get() override;
+    AuthDB db_;
+
+    crow::response signIn(const crow::json::rvalue& body);
+    crow::response signUp(const crow::json::rvalue& body);
+    crow::response signOut(const crow::json::rvalue& body);
+    crow::response getInfo(const crow::json::rvalue& body);
 };

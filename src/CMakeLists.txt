@@ -1,5 +1,4 @@
 add_subdirectory(services)
-add_subdirectory(test)
 
 add_executable( main
     main.cpp
@@ -7,7 +6,6 @@ add_executable( main
 
 target_link_libraries(main PUBLIC
     Crow::Crow
-    cpr::cpr
-
+    # cpr::cpr
     services
 )

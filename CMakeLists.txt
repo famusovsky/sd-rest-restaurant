@@ -7,5 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Crow REQUIRED)
 find_package(cpr REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 add_subdirectory(src)
