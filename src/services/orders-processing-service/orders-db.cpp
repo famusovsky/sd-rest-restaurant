@@ -160,21 +160,41 @@ crow::json::wvalue OrdersDB::getOrder(const std::string& order_id) {
         throw std::runtime_error("DB is not initialized");
     }
 
-    std::string sql = "SELECT * FROM orders WHERE id = ?;";
+    crow::json::wvalue order;
 
-    int exit = runSQL(sql, db_, {order_id});
+    std::string sql = "SELECT orders.status FROM orders WHERE id = ?;";
 
-    if (exit != SQLITE_DONE) {
+    sqlite3_stmt* stmt;
+
+    int exit = sqlite3_prepare_v2(db_, sql.c_str(), sql.length(), &stmt, nullptr);
+
+    if (exit != SQLITE_OK) {
         std::string message =
-            "Error inserting data: " + std::string(sqlite3_errmsg(db_)) + "\n";
+            "Error preparing statement: " + std::string(sqlite3_errmsg(db_)) + "\n";
         throw std::runtime_error(message);
     }
 
-    crow::json::wvalue order;
+    exit = sqlite3_bind_text(stmt, 1, order_id.c_str(), order_id.length(), SQLITE_STATIC);
 
-    sql = "SELECT * FROM orders_dish WHERE orders_id = ?;";
+    if (exit != SQLITE_OK) {
+        std::string message =
+            "Error binding statement: " + std::string(sqlite3_errmsg(db_)) + "\n";
+        throw std::runtime_error(message);
+    }
 
-    sqlite3_stmt* stmt;
+    exit = sqlite3_step(stmt);
+
+    if (exit != SQLITE_ROW) {
+        std::string message =
+            "Error stepping statement: " + std::string(sqlite3_errmsg(db_)) + "\n";
+        throw std::runtime_error(message);
+    }
+
+    order["status"] = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+
+    sqlite3_finalize(stmt);
+
+    sql = "SELECT orders_dish.id, orders_dish.dish_id, orders_dish.quantity FROM orders_dish WHERE orders_id = ?;";
 
     exit = sqlite3_prepare_v2(db_, sql.c_str(), sql.length(), &stmt, nullptr);
 
@@ -205,7 +225,6 @@ crow::json::wvalue OrdersDB::getOrder(const std::string& order_id) {
     do {
         crow::json::wvalue dish;
         dish["id"] = sqlite3_column_int(stmt, 0);
-        dish["orders_id"] = sqlite3_column_int(stmt, 1);
         dish["dish_id"] = sqlite3_column_int(stmt, 2);
         dish["quantity"] = sqlite3_column_int(stmt, 3);
         dishes += dish.dump() + ";";
