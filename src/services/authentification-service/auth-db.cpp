@@ -1,44 +1,12 @@
-#include "db.h"
 #include <crow/json.h>
 #include <iostream>
 #include <algorithm>
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "auth-db.h"
 
-AuthDB::~AuthDB() {
-    std::cout << "Closing DB" << std::endl;
-    sqlite3_close(db_);
-}
-
-AuthDB::AuthDB() {
-    db_ = nullptr;
-}
-
-int runSQL(const std::string& sql, sqlite3* db, const std::vector<std::string>& args) {
-    sqlite3_stmt* stmt;
-    int exit = sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, nullptr);
-
-    if (exit != SQLITE_OK) {
-        std::string message = "Error creating table: " + std::string(sqlite3_errmsg(db)) + "\n";
-        sqlite3_finalize(stmt);
-        throw std::runtime_error(message);
-    }
-
-    for (int i = 0; i < args.size(); ++i) {
-        sqlite3_bind_text(stmt, i + 1, args[i].c_str(), args[i].length(), SQLITE_STATIC);
-
-        if (exit != SQLITE_OK) {
-            std::string message = "Error Bind Text " + std::string(sqlite3_errmsg(db)) + "\n";
-            throw std::runtime_error(message);
-        }
-    }
-
-    exit = sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-
-    return exit;
-}
+AuthDB::AuthDB() = default;
 
 void AuthDB::init(const std::string& db_name) {
     db_name_ = db_name;

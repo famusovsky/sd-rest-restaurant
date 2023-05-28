@@ -1,6 +1,5 @@
-#include "auth.h"
-#include <string>
 #include <stdexcept>
+#include "auth.h"
 
 AuthentificationService::AuthentificationService() = default;
 
@@ -57,7 +56,6 @@ crow::response AuthentificationService::signIn(const crow::json::rvalue& body) {
         if (!db_.isUserLoginAndPasswordCorrect(username, password)) {
             return crow::response(400, "Invalid username or password");
         } else {
-            // TODO: Generate a session token and store it in the database
             db_.createSessionToken(body["session_token"].s(), username);
             return crow::response(200, "User logged in successfully");
         }
@@ -84,7 +82,6 @@ crow::response AuthentificationService::signUp(const crow::json::rvalue& body) {
     }
 
     try {
-        // TODO: Check if username and email are unique in the database
         if (!db_.isUserLoginAndEmailUnique(username, email)) {
             return crow::response(400, "Username or email already taken");
         }
@@ -92,7 +89,6 @@ crow::response AuthentificationService::signUp(const crow::json::rvalue& body) {
         std::cout << "Login and email are unique" << std::endl;
         std::cout << "Creating user " << username << ' ' << email << ' ' << password << ' ' << role << std::endl;
 
-        // TODO: Hash the password and store the user in the database
         db_.createUser(username, email, password, role);
     } catch (const std::runtime_error& e) {
         return crow::response(500, e.what());
@@ -108,7 +104,6 @@ crow::response AuthentificationService::signOut(const crow::json::rvalue& body) 
     std::string session_token = body["session_token"].s();
 
     try {
-        // TODO: Delete the session token from the database
         db_.deleteSessionToken(session_token);
         crow::json::wvalue response_body;
         response_body["message"] = "User logged out successfully";
@@ -119,7 +114,6 @@ crow::response AuthentificationService::signOut(const crow::json::rvalue& body) 
 }
 
 crow::response AuthentificationService::getInfo(const crow::json::rvalue& body) {
-    // TODO: Get the session token from the request
     std::string session_token = body["session_token"].s();
 
     try {

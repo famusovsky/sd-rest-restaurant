@@ -1,5 +1,6 @@
 #include <crow.h>
 #include "services/authentification-service/auth.h"
+#include "services/orders-processing-service/orders.h"
 
 int main() {
     crow::SimpleApp app;
@@ -18,9 +19,11 @@ int main() {
     });
 
     AuthentificationService auth_service;
+    OrdersService orders_service;
 
     try {
         auth_service.init(app, "/auth");
+        orders_service.init(app, "/orders");
     } catch (const std::runtime_error& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;

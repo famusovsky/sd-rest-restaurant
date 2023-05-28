@@ -1,14 +1,13 @@
 #include <sqlite3.h>
 #include <crow.h>
 #include <string>
+#include "../db.h"
 
-class AuthDB {
+class AuthDB : DB {
 public:
     AuthDB();
 
-    ~AuthDB();
-
-    void init(const std::string& db_name);
+    void init(const std::string& db_name) override;
 
     bool isUserLoginAndEmailUnique(const std::string& username, const std::string& email);
 
@@ -23,8 +22,4 @@ public:
     void deleteSessionToken(const std::string& session_token);
 
     crow::json::wvalue getUserInfo(const std::string& username);
-
-private:
-    sqlite3* db_;
-    std::string db_name_;
 };
