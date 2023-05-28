@@ -111,7 +111,7 @@ bool AuthDB::isUserSessionTokenValid(const std::string& session_token) {
         throw std::runtime_error("DB is not initialized");
     }
 
-    std::string sql = "SELECT * FROM session WHERE session_token = ?;";
+    std::string sql = "SELECT * FROM session WHERE session_token = ? AND session.expires_at > datetime('now');";
 
     int exit = runSQL(sql, db_, {session_token});
 
