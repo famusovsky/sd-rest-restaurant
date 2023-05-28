@@ -181,7 +181,7 @@ crow::json::wvalue AuthDB::getUserInfo(const std::string& session_token) {
 
     sqlite3_stmt* stmt;
     std::string sql =
-        "SELECT user.username, user.email, user.role "
+        "SELECT user.id, user.username, user.email, user.role "
         "FROM user "
         "INNER JOIN session ON user.id = session.user_id "
         "WHERE session.session_token = ? AND session.expires_at > datetime('now');";
@@ -203,15 +203,17 @@ crow::json::wvalue AuthDB::getUserInfo(const std::string& session_token) {
     exit = sqlite3_step(stmt);
 
     if (exit == SQLITE_ROW) {
-        std::string username = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-        std::string email = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        std::string role = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        std::string id = std::to_string(sqlite3_column_int(stmt, 0));
+        std::string username = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        std::string email = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        std::string role = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
         sqlite3_finalize(stmt);
 
         crow::json::wvalue result;
         result["username"] = username;
         result["email"] = email;
         result["role"] = role;
+        result["id"] = id;
 
         return result;
     } else if (exit == SQLITE_DONE) {

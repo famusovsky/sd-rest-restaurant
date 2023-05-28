@@ -62,12 +62,14 @@ void OrdersService::processOrders() {
     } catch (const std::runtime_error& e) {
         std::cout << "Error: " << e.what() << std::endl;
     }
+
     std::vector<std::string> orders;
-    std::string delimiter = ",";
+    std::string delimiter = ";";
     size_t pos = 0;
     while ((pos = orders_raw_string.find(delimiter)) != std::string::npos) {
         orders.push_back(orders_raw_string.substr(0, pos));
         orders_raw_string.erase(0, pos + delimiter.length());
+        std::cout << orders.back() << std::endl;
     }
 
     for (auto& order_string : orders) {
@@ -114,9 +116,9 @@ void OrdersService::processOrders() {
 crow::response OrdersService::createOrder(const crow::json::rvalue& body) {
     std::string session_token = body["session_token"].s();
     std::string dish_name = body["dish_name"].s();
-    int quantity = body["quantity"].i();
+    std::string quantity = body["quantity"].s();
 
-    if (session_token.empty() || dish_name.empty() || quantity <= 0) {
+    if (session_token.empty() || dish_name.empty() || quantity.empty()) {
         return crow::response(400, "Missing required fields");
     }
 
@@ -134,7 +136,7 @@ crow::response OrdersService::createOrder(const crow::json::rvalue& body) {
         return crow::response(403, "You are not allowed to create orders");
     }
 
-    std::string user_id = auth_body["user_id"].s();
+    std::string user_id = auth_body["id"].s();
 
     try {
         std::cout << "Creating order" << std::endl;
@@ -167,8 +169,6 @@ crow::response OrdersService::getOrder(const crow::json::rvalue& body) {
     if (auth_body["role"].s() != "manager" && auth_body["role"].s() != "chef") {
         return crow::response(403, "You are not allowed to get orders info");
     }
-
-    std::string user_id = auth_body["order_id"].s();
 
     crow::json::wvalue response_body;
 
