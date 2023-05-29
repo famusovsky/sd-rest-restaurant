@@ -47,7 +47,7 @@ void OrdersService::init(crow::SimpleApp& app, const std::string& path) {
 
     std::thread t([this]() {
         while (true) {
-            std::this_thread::sleep_for(std::chrono::seconds(10));
+            std::this_thread::sleep_for(std::chrono::seconds(2));
             processOrders();
         }
     });
@@ -63,17 +63,32 @@ void OrdersService::processOrders() {
         std::cout << "Error: " << e.what() << std::endl;
     }
 
+    std::cout << orders_raw_string << std::endl;
+
     std::vector<std::string> orders;
-    std::string delimiter = ";";
+    std::string delimiter = "},";
     size_t pos = 0;
+    if ((pos = orders_raw_string.find(":\"")) != std::string::npos) {
+        orders_raw_string.erase(0, pos + 2);
+    }
     while ((pos = orders_raw_string.find(delimiter)) != std::string::npos) {
-        orders.push_back(orders_raw_string.substr(0, pos));
+        orders.push_back(orders_raw_string.substr(0, pos + 1));
         orders_raw_string.erase(0, pos + delimiter.length());
         std::cout << orders.back() << std::endl;
     }
 
     for (auto& order_string : orders) {
-        crow::json::rvalue order = crow::json::load(order_string);
+        crow::json::rvalue order;
+        
+        try {
+            std::cout << order << std::endl;
+            std::cout << order_string << std::endl;
+            order = crow::json::load(order_string);
+            std::cout << order << std::endl;
+        } catch (const std::runtime_error& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+            continue;
+        }
 
         if (order["status"].s() == "processing") {
             std::string dish_name = order["dish_name"].s();
