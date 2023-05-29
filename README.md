@@ -23,7 +23,7 @@ cmake . -B build && cmake --build build --target all
 
 ### IT IS WORKING!!!
 
-
+https://github.com/famusovsky/sd-rest-restaurant/assets/91385084/0d8046ba-54e2-4ef1-acbb-0fab407b70ca
 
 ### Sample requests
 
