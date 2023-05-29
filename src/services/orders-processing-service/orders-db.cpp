@@ -220,7 +220,7 @@ crow::json::wvalue OrdersDB::getOrder(const std::string& order_id) {
         throw std::runtime_error(message);
     }
 
-    std::string dishes;
+    std::string dishes = "[";
 
     do {
         crow::json::wvalue dish;
@@ -229,6 +229,9 @@ crow::json::wvalue OrdersDB::getOrder(const std::string& order_id) {
         dish["quantity"] = sqlite3_column_int(stmt, 2);
         dishes += dish.dump() + ",";
     } while (sqlite3_step(stmt) == SQLITE_ROW);
+
+    dishes.pop_back();
+    dishes += "]";
 
     sqlite3_finalize(stmt);
 
@@ -274,6 +277,7 @@ crow::json::wvalue OrdersDB::getAllOrders() {
     sqlite3_finalize(stmt);
 
     crow::json::wvalue result;
+
     result["orders"] = orders;
 
     return result;

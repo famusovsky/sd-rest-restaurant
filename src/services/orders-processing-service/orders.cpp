@@ -45,16 +45,19 @@ void OrdersService::init(crow::SimpleApp& app, const std::string& path) {
         return manageDish(body);
     });
 
-    std::thread t([this]() {
-        while (true) {
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            processOrders();
-        }
-    });
+    // FIXME
+    // std::thread t([this]() {
+    //     while (true) {
+    //         std::this_thread::sleep_for(std::chrono::seconds(2));
+    //         processOrders();
+    //     }
+    // });
 
-    t.detach();
+    // t.detach();
 }
 
+
+// FIXME
 void OrdersService::processOrders() {
     std::string orders_raw_string;
     try {
@@ -67,7 +70,7 @@ void OrdersService::processOrders() {
 
     std::vector<std::string> orders;
     std::string delimiter = "},";
-    size_t pos = 0;
+    int pos = 0;
     if ((pos = orders_raw_string.find(":\"")) != std::string::npos) {
         orders_raw_string.erase(0, pos + 2);
     }
